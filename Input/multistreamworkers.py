@@ -27,6 +27,7 @@ class MultistreamWorker_GetSpectrogram:
 
             # Calculate the required amounts of padding
             duration_frames = int(options["duration"] * options["expected_sr"])
+            padding_frames = (options["input_shape"][2] - options["output_shape"][2]) / 2  # Number of spectrogram frames to insert context in each direction
             padding_duration = options["padding_duration"]
 
             try:
@@ -59,7 +60,7 @@ class MultistreamWorker_GetSpectrogram:
                             #mag = mag[:, :options["output_shape"][2]]
                         else:
                             assert(isinstance(file, float)) # This source is silent in this track
-                            source_shape = [mix_mag.shape[0], mix_mag.shape[1] - padding*2]
+                            source_shape = [mix_mag.shape[0], mix_mag.shape[1] - padding_frames*2]
                             mag = np.zeros(source_shape, dtype=np.float32) # Therefore insert zeros
                         sample.append(mag)
 
