@@ -131,16 +131,7 @@ def train(model_config, sup_dataset, model_folder, unsup_dataset=None, load_mode
     sep_input_shape, sep_output_shape = separator_class.getUnetPadding(np.array(disc_input_shape))
     separator_func = separator_class.get_output
 
-    # Placeholders and input normalisation
-    mix_context,acc,voice = Input.get_multitrack_placeholders(sep_output_shape, sep_input_shape, "sup")
-    mix = Input.crop(mix_context, sep_output_shape)
-    mix_norm, mix_context_norm, acc_norm, voice_norm = Input.norm(mix), Input.norm(mix_context), Input.norm(acc), Input.norm(voice)
-
-    if unsup_dataset != None:
-        mix_context_u,acc_u,voice_u = Input.get_multitrack_placeholders(sep_output_shape, sep_input_shape, "unsup")
-        mix_u = Input.crop(mix_context_u, sep_output_shape)
-        mix_norm_u, mix_context_norm_u, acc_norm_u, voice_norm_u = Input.norm(mix_u), Input.norm(mix_context_u), Input.norm(acc_u), Input.norm(voice_u)
-
+    # Batch input workers
     # Creating the batch generators
     padding_durations = [float(sep_input_shape[2] - sep_output_shape[2]) * model_config["num_hop"] / model_config["expected_sr"] / 2.0, 0, 0]  # Input context that the input audio has to be padded with while reading audio files
     sup_batch_gen = batchgen.BatchGen_Paired(
@@ -162,6 +153,26 @@ def train(model_config, sup_dataset, model_folder, unsup_dataset=None, load_mode
                 shape,
                 padding_durations[i]
             ))
+
+    print("Starting worker")
+    sup_batch_gen.start_workers()
+    print("Started worker!")
+
+    if unsup_dataset != None:
+        for gen in unsup_batch_gens:
+            print("Starting worker")
+            gen.start_workers()
+            print("Started worker!")
+
+    # Placeholders and input normalisation
+    mix_context,acc,voice = Input.get_multitrack_placeholders(sep_output_shape, sep_input_shape, "sup")
+    mix = Input.crop(mix_context, sep_output_shape)
+    mix_norm, mix_context_norm, acc_norm, voice_norm = Input.norm(mix), Input.norm(mix_context), Input.norm(acc), Input.norm(voice)
+
+    if unsup_dataset != None:
+        mix_context_u,acc_u,voice_u = Input.get_multitrack_placeholders(sep_output_shape, sep_input_shape, "unsup")
+        mix_u = Input.crop(mix_context_u, sep_output_shape)
+        mix_norm_u, mix_context_norm_u, acc_norm_u, voice_norm_u = Input.norm(mix_u), Input.norm(mix_context_u), Input.norm(acc_u), Input.norm(voice_u)
 
     print("Training...")
 
@@ -258,22 +269,12 @@ def train(model_config, sup_dataset, model_folder, unsup_dataset=None, load_mode
     sup_summaries = tf.summary.merge_all(key='sup')
     unsup_summaries = tf.summary.merge_all(key='unsup')
 
-    # Start session and queue input threads
+    # Start session
     config = tf.ConfigProto()
     config.gpu_options.allow_growth=True
     sess = tf.Session(config=config)
     sess.run(tf.global_variables_initializer())
     writer = tf.summary.FileWriter(model_config["log_dir"] + os.path.sep + model_folder, graph=sess.graph)
-
-    print("Starting worker")
-    sup_batch_gen.start_workers()
-    print("Started worker!")
-
-    if unsup_dataset != None:
-        for gen in unsup_batch_gens:
-            print("Starting worker")
-            gen.start_workers()
-            print("Started worker!")
 
     # CHECKPOINTING
     # Load pretrained model to continue training, if we are supposed to
@@ -422,10 +423,10 @@ _       '''
 
         ###################### MODIFY BELOW
 
-        dsd_train, dsd_test = Datasets.getDSDFilelist("/mnt/daten/PycharmProjects/SingingDBAnnotations/DSD100.xml")
-        mdb = Datasets.getMedleyDB("/mnt/daten/PycharmProjects/SingingDBAnnotations/MedleyDB.xml")
-        ccm = Datasets.getCCMixter("/mnt/daten/PycharmProjects/SingingDBAnnotations/CCMixter.xml")
-        ikala = Datasets.getIKala("/mnt/daten/PycharmProjects/SingingDBAnnotations/iKala.xml")
+        dsd_train, dsd_test = Datasets.getDSDFilelist("DSD100.xml")
+        mdb = Datasets.getMedleyDB("MedleyDB.xml")
+        ccm = Datasets.getCCMixter("CCMixter.xml")
+        ikala = Datasets.getIKala("iKala.xml")
 
         ###################### MODIFY ABOVE
 
