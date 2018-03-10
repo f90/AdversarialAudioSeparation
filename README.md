@@ -12,6 +12,8 @@ To achieve this, we use adversarial training: One discriminator network is train
 
 This can prevent overfitting to the often small annotated dataset and makes use of the much more easily available unlabelled data.
 
+<img src="./system_diagram.png" width="700">
+
 ## Setup
 
 ### Requirements
