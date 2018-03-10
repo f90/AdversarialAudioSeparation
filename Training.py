@@ -20,13 +20,13 @@ def cfg():
     model_config = {"model_base_dir" : "checkpoints", # Base folder for model checkpoints
                     "log_dir" : "logs", # Base folder for logs files
                     "batch_size" : 64, # Batch size
-                    "alpha" : 0.01, # Weighting for adversarial loss (unsupervised)
-                    "beta" : 0.01, # Weighting for additive penalty (unsupervised)
+                    "alpha" : 0.001, # Weighting for adversarial loss (unsupervised)
+                    "beta" : 0.001, # Weighting for additive penalty (unsupervised)
                     "lam" : 10, # Weighting term lambda for WGAN gradient penalty
                     "init_disc_lr" : 5e-5, # Discriminator(s) learning rate
                     "init_sup_sep_lr" : 5e-5, # Supervised separator learning rate
                     "init_unsup_sep_lr" : 5e-5, # Unsupervised separator learning rate
-                    "epoch_it" : 500, # Number of supervised separator steps per epoch
+                    "epoch_it" : 1000, # Number of supervised separator steps per epoch
                     "num_disc": 5,  # Number of discriminator iterations per separator update
                     "num_frames" : 64, # DESIRED number of time frames in the spectrogram per sample (this can be increased when using U-net due to its limited output sizes)
                     "num_fft" : 512, # FFT Size
